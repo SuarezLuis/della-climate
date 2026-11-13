@@ -1,0 +1,26 @@
+{
+  "name": "@della-climate/web",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@della-climate/server": "*",
+    "@mantine/charts": "^9.7.4",
+    "@mantine/core": "^9.7.4",
+    "@mantine/hooks": "^9.7.4",
+    "@tanstack/react-query": "^5.105.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.10.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}
