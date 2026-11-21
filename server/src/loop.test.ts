@@ -55,7 +55,7 @@ describe("steer", () => {
 
 describe("inUnit", () => {
   it("converts the last check's temperatures to the unit now shown", () => {
-    const status: Status = { unit: "C", checkedAt: 1, room: 25, power: true, setpoint: 20, unitReading: null, lastChangeAt: null, dps: null, errors: [] };
+    const status: Status = { unit: "C", checkedAt: 1, room: 25, power: true, setpoint: 20, unitReading: null, offset: null, lastChangeAt: null, dps: null, errors: [] };
     expect(inUnit(status, "F")).toMatchObject({ unit: "F", room: 77, setpoint: 68, unitReading: null });
     expect(inUnit(status, "C")).toBe(status);
   });

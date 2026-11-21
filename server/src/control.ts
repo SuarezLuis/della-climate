@@ -19,3 +19,14 @@ export const nextSetpoint = (input: ControlInput): number => {
   const highest = input.base + input.maxOffset;
   return Math.min(highest, Math.max(lowest, input.current + step));
 };
+
+export type Steering = "watching" | "unreachable" | "off" | "no-sensor" | "cooler" | "warmer" | "holding";
+
+// What the app is sending right now; offset is the unit's setpoint minus your target, in the unit's degrees
+export const steering = (state: { enabled: boolean; power: boolean | null; room: number | null; offset: number | null }): Steering => {
+  if (!state.enabled) return "watching";
+  if (state.power === null || state.offset === null) return "unreachable";
+  if (!state.power) return "off";
+  if (state.room === null) return "no-sensor";
+  return state.offset < 0 ? "cooler" : state.offset > 0 ? "warmer" : "holding";
+};

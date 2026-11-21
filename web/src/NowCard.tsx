@@ -1,13 +1,34 @@
 import type { StatusResponse } from "@della-climate/server/index";
 import type { Settings } from "@della-climate/server/settings";
+import { steering, type Steering } from "@della-climate/server/control";
 import { switchUnit } from "@della-climate/server/units";
-import { ActionIcon, Alert, Card, Divider, Group, SegmentedControl, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { ActionIcon, Alert, Badge, Card, Divider, Group, SegmentedControl, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveSettings } from "./api";
 import { formatTemp, timeAgo } from "./format";
 import { Stat } from "./Stat";
 
 type Props = { data: StatusResponse };
+
+const STEERING: Record<Steering, { label: string; color: string }> = {
+  watching: { label: "Watching only", color: "gray" },
+  unreachable: { label: "Can't reach the mini-split", color: "gray" },
+  off: { label: "Mini-split is off", color: "gray" },
+  "no-sensor": { label: "No room reading", color: "yellow" },
+  cooler: { label: "Pushing cooler", color: "blue" },
+  warmer: { label: "Pushing warmer", color: "orange" },
+  holding: { label: "At your target", color: "green" },
+};
+
+const steeringDetail = (state: Steering, offset: number | null, deviceUnit: string) => {
+  const degrees = `${Math.abs(offset ?? 0)}°${deviceUnit}`;
+  if (state === "cooler") return `Its setpoint is ${degrees} below your target.`;
+  if (state === "warmer") return `Its setpoint is ${degrees} above your target.`;
+  if (state === "holding") return "Sending your target as is.";
+  if (state === "no-sensor") return "Sending your plain target until the sensor answers.";
+  if (state === "watching") return "The mini-split runs on its own settings.";
+  return null;
+};
 
 export const NowCard = ({ data }: Props) => {
   const queryClient = useQueryClient();
@@ -18,6 +39,8 @@ export const NowCard = ({ data }: Props) => {
   const step = unit === "F" ? 1 : 0.5;
   const update = (changes: Partial<Settings>) => save.mutate({ ...settings, ...changes });
   const power = status.power === null ? "Unknown" : status.power ? "On" : "Off";
+  const state = steering({ enabled: settings.enabled, power: status.power, room: status.room, offset: status.offset });
+  const detail = steeringDetail(state, status.offset, settings.device.unit);
 
   return (
     <Card withBorder padding="lg">
@@ -72,8 +95,19 @@ export const NowCard = ({ data }: Props) => {
         <Stat label="Last change" value={timeAgo(status.lastChangeAt)} />
       </SimpleGrid>
 
+      <Group mt="lg" gap="sm">
+        <Badge size="lg" variant="light" color={STEERING[state].color}>
+          {STEERING[state].label}
+        </Badge>
+        {detail && (
+          <Text size="sm" c="dimmed">
+            {detail}
+          </Text>
+        )}
+      </Group>
+
       <Switch
-        mt="lg"
+        mt="md"
         checked={settings.enabled}
         onChange={(event) => update({ enabled: event.currentTarget.checked })}
         label="Steer the mini-split from the room sensor"

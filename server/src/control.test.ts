@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextSetpoint, type ControlInput } from "./control";
+import { nextSetpoint, steering, type ControlInput } from "./control";
 
 const input = (overrides: Partial<ControlInput>): ControlInput => ({
   room: 74,
@@ -42,5 +42,22 @@ describe("nextSetpoint", () => {
 
   it("falls back to the plain target without a room reading", () => {
     expect(nextSetpoint(input({ room: null, current: 20, sinceChangeMs: 0 }))).toBe(23);
+  });
+});
+
+describe("steering", () => {
+  const state = { enabled: true, power: true, room: 75, offset: 0 };
+
+  it("names what is being sent", () => {
+    expect(steering({ ...state, offset: -2 })).toBe("cooler");
+    expect(steering({ ...state, offset: 1 })).toBe("warmer");
+    expect(steering(state)).toBe("holding");
+  });
+
+  it("says why nothing is being steered", () => {
+    expect(steering({ ...state, enabled: false })).toBe("watching");
+    expect(steering({ ...state, power: null, offset: null })).toBe("unreachable");
+    expect(steering({ ...state, power: false })).toBe("off");
+    expect(steering({ ...state, room: null })).toBe("no-sensor");
   });
 });

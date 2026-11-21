@@ -13,6 +13,7 @@ export type Status = {
   power: boolean | null;
   setpoint: number | null;
   unitReading: number | null;
+  offset: number | null;
   lastChangeAt: number | null;
   dps: DataPoints | null;
   errors: string[];
@@ -30,6 +31,7 @@ let status: Status = {
   power: null,
   setpoint: null,
   unitReading: null,
+  offset: null,
   lastChangeAt: null,
   dps: null,
   errors: [],
@@ -118,6 +120,7 @@ const toStatus = (now: number, settings: Settings, room: number | null, steered:
     power: steered ? steered.dps[dataPoints.power] === true : null,
     setpoint: toApp(steered?.setpoint ?? null),
     unitReading: toApp(steered ? deviceNumber(steered.dps, dataPoints.current, scale) : null),
+    offset: steered ? steered.setpoint - Math.round(convert(settings.target, settings.unit, unit)) : null,
     lastChangeAt: steered?.changed ? now : status.lastChangeAt,
     dps: steered?.dps ?? null,
     errors,
