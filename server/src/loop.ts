@@ -7,6 +7,7 @@ import { loadSettings, type Settings } from "./settings";
 import { convert, type Unit } from "./units";
 
 export type Status = {
+  unit: Unit;
   checkedAt: number | null;
   room: number | null;
   power: boolean | null;
@@ -23,6 +24,7 @@ const INTERVAL_MS = 60_000;
 const RETENTION_MS = 30 * 24 * 3600_000;
 
 let status: Status = {
+  unit: "F",
   checkedAt: null,
   room: null,
   power: null,
@@ -35,7 +37,14 @@ let status: Status = {
 let resetPending = true;
 let running = false;
 
-export const getStatus = () => status;
+// Status temperatures are in the unit of the last check; convert them so a unit switch shows at once
+export const inUnit = (current: Status, unit: Unit): Status => {
+  if (current.unit === unit) return current;
+  const to = (value: number | null) => (value === null ? null : convert(value, current.unit, unit));
+  return { ...current, unit, room: to(current.room), setpoint: to(current.setpoint), unitReading: to(current.unitReading) };
+};
+
+export const getStatus = (unit: Unit) => inUnit(status, unit);
 
 // The next check sets the unit straight to the target, dropping any offset built up so far
 export const requestReset = () => {
@@ -103,6 +112,7 @@ const toStatus = (now: number, settings: Settings, room: number | null, steered:
   const { dps: dataPoints, scale, unit } = settings.device;
   const toApp = (value: number | null) => (value === null ? null : convert(value, unit, settings.unit));
   return {
+    unit: settings.unit,
     checkedAt: now,
     room,
     power: steered ? steered.dps[dataPoints.power] === true : null,

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { DataPoints, Device } from "./della";
-import { requestReset, steer } from "./loop";
+import { inUnit, requestReset, steer, type Status } from "./loop";
 import { DEFAULTS, type Settings } from "./settings";
 
 const fakeDevice = (dps: DataPoints) => {
@@ -50,5 +50,13 @@ describe("steer", () => {
   it("refuses a setpoint data point that is not a number", async () => {
     const { device } = fakeDevice({ "1": true, "2": "cold" });
     await expect(steer(device, settings(), 74, Date.now())).rejects.toThrow("data point 2 is not a number");
+  });
+});
+
+describe("inUnit", () => {
+  it("converts the last check's temperatures to the unit now shown", () => {
+    const status: Status = { unit: "C", checkedAt: 1, room: 25, power: true, setpoint: 20, unitReading: null, lastChangeAt: null, dps: null, errors: [] };
+    expect(inUnit(status, "F")).toMatchObject({ unit: "F", room: 77, setpoint: 68, unitReading: null });
+    expect(inUnit(status, "C")).toBe(status);
   });
 });

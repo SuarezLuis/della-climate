@@ -17,7 +17,10 @@ if (!Number.isInteger(port) || port <= 0) {
 
 const app = Fastify({ logger: true, disableRequestLogging: true });
 
-app.get("/api/status", async (): Promise<StatusResponse> => ({ settings: toPublic(loadSettings()), status: getStatus() }));
+app.get("/api/status", async (): Promise<StatusResponse> => {
+  const settings = loadSettings();
+  return { settings: toPublic(settings), status: getStatus(settings.unit) };
+});
 
 app.put("/api/settings", async (request, reply) => {
   const parsed = settingsSchema.safeParse(request.body);
