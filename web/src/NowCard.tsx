@@ -1,6 +1,7 @@
 import type { StatusResponse } from "@della-climate/server/index";
 import type { Settings } from "@della-climate/server/settings";
-import { ActionIcon, Alert, Card, Divider, Group, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { switchUnit } from "@della-climate/server/units";
+import { ActionIcon, Alert, Card, Divider, Group, SegmentedControl, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { saveSettings } from "./api";
 import { formatTemp, timeAgo } from "./format";
@@ -33,9 +34,21 @@ export const NowCard = ({ data }: Props) => {
           </Text>
         </Stack>
         <Stack gap={4} align="center">
-          <Text size="sm" c="dimmed">
-            Target
-          </Text>
+          <Group gap="xs">
+            <Text size="sm" c="dimmed">
+              Target
+            </Text>
+            <SegmentedControl
+              size="xs"
+              aria-label="Temperature unit"
+              data={[
+                { value: "F", label: "°F" },
+                { value: "C", label: "°C" },
+              ]}
+              value={unit}
+              onChange={(value) => save.mutate(switchUnit(settings, value === "C" ? "C" : "F"))}
+            />
+          </Group>
           <Group gap="xs">
             <ActionIcon variant="default" size="lg" aria-label="Lower the target" onClick={() => update({ target: settings.target - step })}>
               −

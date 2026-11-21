@@ -1,6 +1,6 @@
 import type { DataPoints } from "@della-climate/server/della";
 import type { PublicSettings, Settings } from "@della-climate/server/settings";
-import { convert, convertDelta, type Unit } from "@della-climate/server/units";
+import { switchUnit, type Unit } from "@della-climate/server/units";
 import { Alert, Button, Code, Fieldset, Group, NumberInput, PasswordInput, Select, Stack, Text, TextInput } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -17,8 +17,6 @@ const SCALE_OPTIONS = [
   { value: "1", label: "Whole degrees (22 means 22°)" },
   { value: "10", label: "Tenths (220 means 22.0°)" },
 ];
-
-const round = (value: number) => Math.round(value * 10) / 10;
 
 type Props = { settings: PublicSettings; dps: DataPoints | null; onSaved: () => void };
 
@@ -41,13 +39,7 @@ export const SettingsForm = ({ settings, dps, onSaved }: Props) => {
     if (typeof value === "number") setForm((current) => ({ ...current, [name]: value }));
   };
   const changeUnit = (unit: Unit | undefined) => {
-    if (!unit) return;
-    setForm((current) => ({
-      ...current,
-      unit,
-      target: round(convert(current.target, current.unit, unit)),
-      deadband: round(convertDelta(current.deadband, current.unit, unit)),
-    }));
+    if (unit) setForm((current) => switchUnit(current, unit));
   };
 
   return (
